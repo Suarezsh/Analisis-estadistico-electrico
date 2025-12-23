@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Consumo Eléctrico - Estadística</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; color: #333; }
+        .container { margin-top: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 20px; }
+        .chart-container { height: 400px; margin-bottom: 20px; border-radius: 10px; overflow: hidden; }
+        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 9999; color: white; font-size: 24px; }
+        #loadingOverlay.show { display: flex; }
+        .progress-bar { width: 300px; height: 20px; background: #ddd; border-radius: 10px; overflow: hidden; margin-top: 20px; }
+        .progress-fill { height: 100%; background: #8B0000; transition: width 0.3s; }
+        .card { border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .card-header { background-color: #8B0000; color: white; border-radius: 10px 10px 0 0; font-weight: bold; }
+        .btn-primary { background-color: #8B0000; border-color: #8B0000; border-radius: 5px; }
+        .btn-primary:hover { background-color: #660000; border-color: #660000; }
+        h1, h2 { color: #333; text-align: center; }
+        .fa { margin-right: 10px; color: white; }
+        .table thead { background-color: #8B0000; color: white; }
+        .table tbody tr:hover { background-color: #f1f1f1; }
+    </style>
+</head>
+<body>
+    <div id="loadingOverlay">
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
+            <div>Procesando filtros y generando análisis...</div>
+            <div id="progressText">0%</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <h1 class="mb-4"><i class="fas fa-chart-line"></i>Análisis Estadístico de Consumo Eléctrico - Arequipa</h1>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-upload"></i>Subir Archivo CSV
+                    </div>
+                    <div class="card-body">
+                        <label for="csvFile" class="form-label">Selecciona un archivo CSV con formato: CodigoSuministro, PeriodoFacturado, ConsumoKwh, Facturado_Soles, FechaEmisionRecibo, CodigoUbigeo, NombreProvincia, NombreDistrito, NombreDepartamento, Tarifa</label>
+                        <input type="file" class="form-control" id="csvFile" accept=".csv">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="filters" class="row" style="display: none;">
+            <div class="col-md-4 mb-3">
+                <label for="provinceSelect" class="form-label"><i class="fas fa-map-marker-alt"></i>Provincia:</label>
+                <select id="provinceSelect" class="form-select">
+                    <option value="TODAS">TODAS</option>
+                </select>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="districtSelect" class="form-label"><i class="fas fa-city"></i>Distrito:</label>
+                <select id="districtSelect" class="form-select">
+                    <option value="TODOS">TODOS</option>
+                </select>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="tariffSelect" class="form-label"><i class="fas fa-tags"></i>Tarifa:</label>
+                <select id="tariffSelect" class="form-select">
+                    <option value="TODAS">TODAS</option>
+                </select>
+            </div>
+        </div>
+        <div class="text-center mb-4" id="applyFilters" style="display: none;">
+            <button class="btn btn-primary btn-lg"><i class="fas fa-filter"></i>Aplicar Filtros y Generar Análisis</button>
+        </div>
+        <div id="stats" class="card" style="display: none;">
+            <div class="card-header">
+                <i class="fas fa-calculator"></i>Estadísticas Descriptivas
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Métrica</th>
+                                <th>ConsumoKwh</th>
+                                <th>Facturado_Soles</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="charts" style="display: none;">
+            <h2><i class="fas fa-chart-bar"></i>Gráficos Estadísticos</h2>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-chart-area"></i>Histograma de Consumo (Distribución)
+                        </div>
+                        <div class="card-body">
+                            <div id="histogramChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-box"></i>Diagrama de Caja (Boxplot) de Consumo por Tarifa
+                        </div>
+                        <div class="card-body">
+                            <div id="boxplotChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-chart-column"></i>Gráfico de Barras: Consumo Total por Distrito (Top 10)
+                        </div>
+                        <div class="card-body">
+                            <div id="barChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-scatter-plot"></i>Gráfico de Dispersión: Consumo vs. Facturación
+                        </div>
+                        <div class="card-body">
+                            <div id="scatterChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-heatmap"></i>Mapa de Calor: Consumo Promedio por Distrito y Tarifa
+                        </div>
+                        <div class="card-body">
+                            <div id="heatmapChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let data = [];
+        let provincesSet = new Set();
+        let districtsSet = new Set();
+        let tariffsSet = new Set();
+        let stats = { consumo: { count: 0, sum: 0, sumSq: 0, min: Infinity, max: -Infinity, values: [] }, facturado: { count: 0, sum: 0, sumSq: 0, min: Infinity, max: -Infinity, values: [] } };
+        let filteredStats = { ...stats };
+        let boxData = {};
+        let districtSums = {};
+        let scatterData = [];
+        let charts = {};
+
+        document.getElementById('csvFile').addEventListener('change', handleFileSelect);
+        document.getElementById('provinceSelect').addEventListener('change', updateDistrictOptions);
+        document.getElementById('applyFilters').addEventListener('click', applyFiltersAndPlot);
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            data = [];
+            provincesSet.clear();
+            districtsSet.clear();
+            tariffsSet.clear();
+            stats = { consumo: { count: 0, sum: 0, sumSq: 0, min: Infinity, max: -Infinity, values: [] }, facturado: { count: 0, sum: 0, sumSq: 0, min: Infinity, max: -Infinity, values: [] } };
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                step: function(results, parser) {
+                    const row = results.data;
+                    row.ConsumoKwh = parseFloat(row.ConsumoKwh) || 0;
+                    row.Facturado_Soles = parseFloat(row.Facturado_Soles) || 0;
+                    data.push(row);
+                    provincesSet.add(row.NombreProvincia);
+                    districtsSet.add(row.NombreDistrito);
+                    tariffsSet.add(row.Tarifa);
+                    updateStats(stats.consumo, row.ConsumoKwh);
+                    updateStats(stats.facturado, row.Facturado_Soles);
+                },
+                complete: function() {
+                    populateFilters();
+                    document.getElementById('filters').style.display = 'flex';
+                    document.getElementById('applyFilters').style.display = 'block';
+                }
+            });
+        }
+
+        function updateStats(statObj, value) {
+            statObj.count++;
+            statObj.sum += value;
+            statObj.sumSq += value * value;
+            statObj.min = Math.min(statObj.min, value);
+            statObj.max = Math.max(statObj.max, value);
+            statObj.values.push(value);
+        }
+
+        function populateFilters() {
+            const provinces = ['TODAS', ...Array.from(provincesSet).filter(Boolean)];
+            const tariffs = ['TODAS', ...Array.from(tariffsSet).filter(Boolean)];
+            populateSelect('provinceSelect', provinces);
+            populateSelect('tariffSelect', tariffs);
+            updateDistrictOptions();
+        }
+
+        function populateSelect(id, options) {
+            const select = document.getElementById(id);
+            select.innerHTML = '';
+            options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt;
+                option.textContent = opt;
+                select.appendChild(option);
+            });
+        }
+
+        function updateDistrictOptions() {
+            const province = document.getElementById('provinceSelect').value;
+            let districts = ['TODOS'];
+            if (province !== 'TODAS') {
+                districts = ['TODOS', ...Array.from(districtsSet).filter(d => data.some(row => row.NombreProvincia === province && row.NombreDistrito === d))];
+            } else {
+                districts = ['TODOS', ...Array.from(districtsSet).filter(Boolean)];
+            }
+            populateSelect('districtSelect', districts);
+        }
+
+        function applyFiltersAndPlot() {
+            const province = document.getElementById('provinceSelect').value;
+            const district = document.getElementById('districtSelect').value;
+            const tariff = document.getElementById('tariffSelect').value;
+
+            document.getElementById('loadingOverlay').classList.add('show');
+            let processed = 0;
+            const total = data.length;
+            const chunkSize = 5000; // Más grande para velocidad
+            filteredStats = { consumo: { count: 0, sum: 0, sumSq: 0, min: Infinity, max: -Infinity, values: [] }, facturado: { count: 0, sum: 0, sumSq: 0, min: Infinity, max: -Infinity, values: [] } };
+            boxData = {};
+            districtSums = {};
+            scatterData = [];
+
+            function processChunk(start) {
+                const end = Math.min(start + chunkSize, total);
+                for (let i = start; i < end; i++) {
+                    const row = data[i];
+                    if ((province === 'TODAS' || row.NombreProvincia === province) &&
+                        (district === 'TODOS' || row.NombreDistrito === district) &&
+                        (tariff === 'TODAS' || row.Tarifa === tariff)) {
+                        updateStats(filteredStats.consumo, row.ConsumoKwh);
+                        updateStats(filteredStats.facturado, row.Facturado_Soles);
+                        if (!boxData[row.Tarifa]) boxData[row.Tarifa] = [];
+                        boxData[row.Tarifa].push(row.ConsumoKwh);
+                        districtSums[row.NombreDistrito] = (districtSums[row.NombreDistrito] || 0) + row.ConsumoKwh;
+                        if (scatterData.length < 3000) scatterData.push([row.ConsumoKwh, row.Facturado_Soles]);
+                    }
+                }
+                processed = end;
+                const progress = (processed / total) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+                document.getElementById('progressText').textContent = Math.round(progress) + '%';
+
+                if (processed < total) {
+                    setTimeout(() => processChunk(end), 0);
+                } else {
+                    if (filteredStats.consumo.count === 0) {
+                        document.getElementById('loadingOverlay').classList.remove('show');
+                        alert('No se encontraron datos con los filtros seleccionados.');
+                        return;
+                    }
+                    calculateStatsTable();
+                    generateCharts();
+                    document.getElementById('stats').style.display = 'block';
+                    document.getElementById('charts').style.display = 'block';
+                    document.getElementById('loadingOverlay').classList.remove('show');
+                }
+            }
+
+            processChunk(0);
+        }
+
+        function calculateStatsTable() {
+            const consumoMean = filteredStats.consumo.sum / filteredStats.consumo.count;
+            const facturadoMean = filteredStats.facturado.sum / filteredStats.facturado.count;
+            const consumoVar = (filteredStats.consumo.sumSq / filteredStats.consumo.count) - (consumoMean ** 2);
+            const facturadoVar = (filteredStats.facturado.sumSq / filteredStats.facturado.count) - (facturadoMean ** 2);
+            const consumoStd = Math.sqrt(Math.max(0, consumoVar));
+            const facturadoStd = Math.sqrt(Math.max(0, facturadoVar));
+            const consumoMedian = d3.median(filteredStats.consumo.values);
+
+            const table = document.getElementById('statsTable');
+            table.innerHTML = `
+                <tr><td>Media</td><td>${consumoMean.toFixed(2)}</td><td>${facturadoMean.toFixed(2)}</td></tr>
+                <tr><td>Mediana</td><td>${consumoMedian.toFixed(2)}</td><td>${d3.median(filteredStats.facturado.values).toFixed(2)}</td></tr>
+                <tr><td>Desviación Estándar</td><td>${consumoStd.toFixed(2)}</td><td>${facturadoStd.toFixed(2)}</td></tr>
+                <tr><td>Total Consumo Kwh</td><td>${filteredStats.consumo.sum.toFixed(2)}</td><td>-</td></tr>
+                <tr><td>Total Facturado Soles</td><td>-</td><td>${filteredStats.facturado.sum.toFixed(2)}</td></tr>
+            `;
+        }
+
+        function generateCharts() {
+            // Destruir charts existentes
+            Object.values(charts).forEach(chart => chart.destroy ? chart.destroy() : null);
+            charts = {};
+
+            // Histograma con ApexCharts
+            const sampleValues = d3.shuffle(filteredStats.consumo.values).slice(0, 3000); // Menos sample
+            const hist = d3.histogram().thresholds(15)(sampleValues);
+            const categories = hist.map(bin => `${bin.x0.toFixed(0)}-${bin.x1.toFixed(0)}`);
+            const seriesData = hist.map(bin => bin.length);
+            const optionsHist = {
+                chart: { type: 'bar', height: 350, toolbar: { show: false } },
+                series: [{ name: 'Frecuencia', data: seriesData }],
+                xaxis: { categories: categories, title: { text: 'Consumo (Kwh)' } },
+                yaxis: { title: { text: 'Frecuencia' } },
+                colors: ['#8B0000'],
+                responsive: [{ breakpoint: 480, options: { chart: { width: 200 }, legend: { position: 'bottom' } } }]
+            };
+            charts.histogram = new ApexCharts(document.querySelector("#histogramChart"), optionsHist);
+            charts.histogram.render();
+
+            // Boxplot con Plotly
+            const traces = Object.keys(boxData).slice(0, 8).map(tarifa => ({
+                y: boxData[tarifa],
+                type: 'box',
+                name: tarifa
+            }));
+            Plotly.newPlot('boxplotChart', traces, {title: 'Boxplot de Consumo por Tarifa', responsive: true});
+
+            // Barras con ApexCharts
+            const sortedDistricts = Object.entries(districtSums).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            const optionsBar = {
+                chart: { type: 'bar', height: 350, toolbar: { show: false } },
+                series: [{ name: 'Consumo Total (Kwh)', data: sortedDistricts.map(d => d[1]) }],
+                xaxis: { categories: sortedDistricts.map(d => d[0]), title: { text: 'Distrito' } },
+                yaxis: { title: { text: 'Consumo Total (Kwh)' } },
+                colors: ['#8B0000'],
+                responsive: [{ breakpoint: 480, options: { chart: { width: 200 }, legend: { position: 'bottom' } } }]
+            };
+            charts.bar = new ApexCharts(document.querySelector("#barChart"), optionsBar);
+            charts.bar.render();
+
+            // Scatter con ApexCharts
+            const sampleScatter = scatterData.slice(0, 1500);
+            const optionsScatter = {
+                chart: { type: 'scatter', height: 350, toolbar: { show: false }, zoom: { enabled: false } },
+                series: [{ name: 'Consumo vs Facturado', data: sampleScatter }],
+                xaxis: { title: { text: 'Consumo (Kwh)' } },
+                yaxis: { title: { text: 'Facturado (Soles)' } },
+                colors: ['#8B0000'],
+                responsive: [{ breakpoint: 480, options: { chart: { width: 200 }, legend: { position: 'bottom' } } }]
+            };
+            charts.scatter = new ApexCharts(document.querySelector("#scatterChart"), optionsScatter);
+            charts.scatter.render();
+
+            // Heatmap con Plotly
+            const pivot = {};
+            Object.keys(districtSums).slice(0, 8).forEach(dist => {
+                pivot[dist] = {};
+                data.forEach(row => {
+                    if (row.NombreDistrito === dist && (document.getElementById('tariffSelect').value === 'TODAS' || row.Tarifa === document.getElementById('tariffSelect').value)) {
+                        pivot[dist][row.Tarifa] = (pivot[dist][row.Tarifa] || []).concat(row.ConsumoKwh);
+                    }
+                });
+            });
+            const districts = Object.keys(pivot);
+            const tariffs = [...new Set(data.map(d => d.Tarifa))].slice(0, 5);
+            const z = districts.map(dist => tariffs.map(tar => d3.mean(pivot[dist][tar] || [0])));
+            const heatmap = [{
+                x: tariffs,
+                y: districts,
+                z: z,
+                type: 'heatmap',
+                colorscale: 'Reds'
+            }];
+            Plotly.newPlot('heatmapChart', heatmap, {title: 'Mapa de Calor: Consumo Promedio por Distrito y Tarifa', responsive: true});
+        }
+    </script>
+</body>
+</html>
