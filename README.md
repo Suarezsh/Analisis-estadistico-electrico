@@ -33,13 +33,13 @@ Este proyecto utiliza una combinación de tecnologías modernas para el frontend
 
 | Tecnología | Logo | Descripción |
 |------------|------|-------------|
-| ![HTML5](https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/HTML5_logo_and_wordmark.svg/128px-HTML5_logo_and_wordmark.svg.png) | **HTML5** | Lenguaje de marcado para estructurar el contenido web. |
-| ![CSS3](https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/CSS3_logo_and_wordmark.svg/128px-CSS3_logo_and_wordmark.svg.png) | **CSS3** | Lenguaje de estilos para el diseño y presentación. |
-| ![JavaScript](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/JavaScript-logo.png/128px-JavaScript-logo.png) | **JavaScript** | Lenguaje de programación para la lógica interactiva. |
+| ![HTML5](https://www.w3.org/html/logo/badge/html5-badge-h-solo.png) | **HTML5** | Lenguaje de marcado para estructurar el contenido web. |
+| ![CSS3](https://upload.wikimedia.org/wikipedia/commons/d/d5/CSS3_logo_and_wordmark.svg) | **CSS3** | Lenguaje de estilos para el diseño y presentación. |
+| ![JavaScript](https://upload.wikimedia.org/wikipedia/commons/6/6a/JavaScript-logo.png) | **JavaScript** | Lenguaje de programación para la lógica interactiva. |
 | ![Bootstrap](https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo-shadow.png) | **Bootstrap 5** | Framework CSS para diseño responsivo y componentes UI. |
-| ![Font Awesome](https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Font_Awesome_Logo.svg/128px-Font_Awesome_Logo.svg.png) | **Font Awesome** | Biblioteca de iconos vectoriales escalables. |
+| ![Font Awesome](https://fontawesome.com/images/logo/logo.svg) | **Font Awesome** | Biblioteca de iconos vectoriales escalables. |
 | ![ApexCharts](https://apexcharts.com/wp-content/themes/apexcharts/img/apexcharts-logo.png) | **ApexCharts** | Librería para gráficos interactivos (histogramas, barras, dispersiones). |
-| ![Plotly](https://plotly.com/static/images/plotly-logo.png) | **Plotly.js** | Librería para visualizaciones avanzadas (boxplots, mapas de calor). |
+| ![Plotly](https://images.plot.ly/logo/plotly-logo.png) | **Plotly.js** | Librería para visualizaciones avanzadas (boxplots, mapas de calor). |
 | ![PapaParse](https://www.papaparse.com/assets/images/logo.png) | **PapaParse** | Librería para parseo eficiente de archivos CSV. |
 | ![D3.js](https://d3js.org/logo.svg) | **D3.js** | Librería para manipulación y visualización de datos. |
 
