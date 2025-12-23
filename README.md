@@ -135,4 +135,3 @@ Este proyecto está bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE)
 **Hecho con ❤️ para promover el análisis de datos energéticos en Perú.**
 
 </div></content>
-<parameter name="filePath">C:\xampp1\htdocs\Github\EMAT-TIF\README.md
