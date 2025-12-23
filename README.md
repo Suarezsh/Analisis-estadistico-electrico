@@ -29,21 +29,17 @@ El proyecto está diseñado para ser intuitivo y eficiente, procesando grandes v
 
 Este proyecto utiliza una combinación de tecnologías modernas para el frontend y la visualización de datos:
 
-<div align="center">
-
-| Tecnología | Logo | Descripción |
-|------------|------|-------------|
-| ![HTML5](https://www.w3.org/html/logo/badge/html5-badge-h-solo.png) | **HTML5** | Lenguaje de marcado para estructurar el contenido web. |
-| ![CSS3](https://upload.wikimedia.org/wikipedia/commons/d/d5/CSS3_logo_and_wordmark.svg) | **CSS3** | Lenguaje de estilos para el diseño y presentación. |
-| ![JavaScript](https://upload.wikimedia.org/wikipedia/commons/6/6a/JavaScript-logo.png) | **JavaScript** | Lenguaje de programación para la lógica interactiva. |
-| ![Bootstrap](https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo-shadow.png) | **Bootstrap 5** | Framework CSS para diseño responsivo y componentes UI. |
-| ![Font Awesome](https://fontawesome.com/images/logo/logo.svg) | **Font Awesome** | Biblioteca de iconos vectoriales escalables. |
-| ![ApexCharts](https://apexcharts.com/wp-content/themes/apexcharts/img/apexcharts-logo.png) | **ApexCharts** | Librería para gráficos interactivos (histogramas, barras, dispersiones). |
-| ![Plotly](https://images.plot.ly/logo/plotly-logo.png) | **Plotly.js** | Librería para visualizaciones avanzadas (boxplots, mapas de calor). |
-| ![PapaParse](https://www.papaparse.com/assets/images/logo.png) | **PapaParse** | Librería para parseo eficiente de archivos CSV. |
-| ![D3.js](https://d3js.org/logo.svg) | **D3.js** | Librería para manipulación y visualización de datos. |
-
-</div>
+| Tecnología | Descripción |
+|------------|-------------|
+| **HTML5** | Lenguaje de marcado para estructurar el contenido web. |
+| **CSS3** | Lenguaje de estilos para el diseño y presentación. |
+| **JavaScript** | Lenguaje de programación para la lógica interactiva. |
+| **Bootstrap 5** | Framework CSS para diseño responsivo y componentes UI. |
+| **Font Awesome** | Biblioteca de iconos vectoriales escalables. |
+| **ApexCharts** | Librería para gráficos interactivos (histogramas, barras, dispersiones). |
+| **Plotly.js** | Librería para visualizaciones avanzadas (boxplots, mapas de calor). |
+| **PapaParse** | Librería para parseo eficiente de archivos CSV. |
+| **D3.js** | Librería para manipulación y visualización de datos. |
 
 ## Instalación
 
